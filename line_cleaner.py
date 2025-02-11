@@ -9,7 +9,6 @@ from numpyro.infer import MCMC, NUTS, Predictive
 
 import scipy.signal as sig
 
-
 def line_model_freq(freqs, d_re, d_im, f_line_guess, f_prior_width, gamma_min, gamma_max, estimate_line=False):
     f0 = numpyro.sample('f0', dist.TruncatedNormal(f_line_guess, f_prior_width, low=f_line_guess - 5*f_prior_width, high=f_line_guess + 5*f_prior_width))
     gamma = numpyro.sample('gamma', dist.Uniform(gamma_min, gamma_max))
@@ -39,6 +38,34 @@ def line_model_freq(freqs, d_re, d_im, f_line_guess, f_prior_width, gamma_min, g
         numpyro.sample('line_im', dist.Normal(d_im*mean_wt, sd))
 
 def clean_strain(times, data, srate, f0s, bandwidths, Twindow, mcmc_seed=None, resample_seed=None, return_mcmcs=False):
+    """
+        clean_strain(times, data, srate, f0s, bandwidths, Twindow,
+        mcmc_seed=None, resample_seed=None, return_mcmcs=False)
+
+    Clean a strain time series by removing Lorentzian lines centered at the
+    frequencies `f0s` with (narrow) bandwidths `bandwidths`; the central
+    frequency and bandwidth should be chosen to encompass the line to be removed
+    as well as a small amount of "continum" data around it, but not too broad.
+    
+    The strain will be windowed with a Tukey window with a time `Twindow` inside
+    the windowed region.  
+
+    `mcmc_seed` and `resample_seed` are for reproducabilty: the former controls
+    the MCMC sampling while the latter is used to make the draw from the MCMC
+    samples for subtraction to produce the line-cleaned residuals.  
+
+    If `return_mcmcs` is True, the function will return `(times_residual,
+    data_residual, mcmcs, pred_samples)`, where `times_residual` are times in
+    the original data sequence where the window function is 1, `data_residual`
+    are the line-subtracted residuals at those times, `mcmcs` are a list of MCMC
+    samples for the lines that have been removed (one for each `f0s` and
+    `bandwidths`), and `pred_samples` are the the samples from the predicted
+    Lorentzians that have been subtracted from the data.
+
+    If `return_mcmcs` is False, then only `(times_residual, data_residual)` are
+    returned; if you do not want to perform further analysis on the Lorentzian
+    lines, this is probably the option you want.
+    """
     if mcmc_seed is None:
         mcmc_seed = np.random.randint(1<<32)
     if resample_seed is None:

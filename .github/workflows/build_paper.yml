@@ -1,0 +1,27 @@
+name: 'Build LaTex Document'
+on:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        name: Tectonic Cache
+        with:
+          path: ~/.cache/Tectonic
+          key: ${{ runner.os }}-tectonic-${{ hashFiles('**/*.tex') }}
+          restore-keys: |
+            ${{ runner.os }}-tectonic-
+      - uses: wtfjoke/setup-tectonic@v3
+      - name: Run Tectonic
+        run: cd note && tectonic linecleaner.tex
+      - name: Upload pdf
+        run: |
+            git checkout --orphan ${{ github.ref_name }}-pdf
+            git rm -rf .
+            git add -f note/linecleaner.pdf
+            git -c user.name="Will M. Farr" -c user.email="wfarr@flatironinstitute.org" commit -m "Building paper"
+            git push -q -f origin ${{ github.ref_name }}-pdf

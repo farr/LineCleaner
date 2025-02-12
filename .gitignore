@@ -1,6 +1,7 @@
 .vscode
 __pycache__
 *.h5
+*.hdf5
 *.aux
 *.fdb_latexmk
 *.fls

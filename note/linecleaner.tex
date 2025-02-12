@@ -114,7 +114,18 @@ un-biasedly described by the spectral density $S_0$; see Appendix
 
 \section{Implementation}
 
-TODO.
+\begin{itemize}
+    \item One consideration is the length of data to fit.  Ensure (after
+    tapering) there are at least several correlation times $\tau = 1/\gamma$ of
+    the line avaliable to fit; going beyond this is not going to improve the
+    subtraction of the line dramatically (even if it will improve knowledge of
+    the line's parameters), because the phase of the line ``resets'' after each
+    correlation time, and it can hurt if the data are significantly
+    non-stationary, since the model assumes stationarity.
+    \item The bandwidth should be chosen as narrow as possible, but wide enough
+    to ensure that the wings of the line have fallen well below the continuum noise
+    level.  This is for two reasons: first, the line will only be subtracted from the data within the chosen bandwidth, so you want to include all data where the line could be relevant; second, you need to ensure that the model has a good estimate of the continuum noise level.
+\end{itemize}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{raw-and-cleaned-psd.pdf}

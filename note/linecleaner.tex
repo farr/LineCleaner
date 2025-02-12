@@ -17,6 +17,7 @@
 \end{abstract}
 
 \section{Theory}
+\label{sec:theory}
 
 Consider a simple harmonic oscillator driven by a stochastically-fluctuating
 signal, $n(t)$,
@@ -115,12 +116,29 @@ un-biasedly described by the spectral density $S_0$; see Appendix
 
 TODO.
 
+\begin{figure}
+    \includegraphics[width=\columnwidth]{raw-and-cleaned-psd.pdf}
+    \caption{\label{fig:cleaned-psd} An example of a cleaning of data from the Hanford LIGO observatory around the GW150914 event \cite{Abbott2016,Abbott2019,GWOSC,GWOSC2,GW150914-GWOSC}.  The Lorentzian lines at $60 \, \mathrm{Hz}$, $120 \, \mathrm{Hz}$, and $180 \, \mathrm{Hz}$ are clearly visible in the raw data, but are removed by the line cleaner; the cleaning used $4 \, \mathrm{Hz}$ bandwidth around each line.  Figure \ref{fig:line-zoom} shows the raw and cleaned data in the vicinity of each line.}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{line-zoom-in.pdf}
+    \caption{\label{fig:line-zoom} A zoom-in of the raw and cleaned data shown in Figure \ref{fig:cleaned-psd}.}
+\end{figure}
+
 \appendix
 
 \section{Avoiding Over-Subtraction}
 \label{sec:oversubtract}
 
-TODO.
+As discussed in Section \ref{sec:theory}, the line cleaner algorithm subtracts a
+fair draw from the posterior over the line parameters and line values, instead
+of using the maximum-likelihood values for either of these quantities.  This
+procedure avoids oversubtraction of the line, which is particularly important if
+downstream analyses are producing, for example, a noise estimate from the
+residuals.
+
+Before showing these results.
 
 \bibliographystyle{aasjournal}
 \bibliography{linecleaner}

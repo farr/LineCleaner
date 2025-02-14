@@ -114,18 +114,49 @@ un-biasedly described by the spectral density $S_0$; see Appendix
 
 \section{Implementation}
 
-\begin{itemize}
-    \item One consideration is the length of data to fit.  Ensure (after
-    tapering) there are at least several correlation times $\tau = 1/\gamma$ of
-    the line avaliable to fit; going beyond this is not going to improve the
-    subtraction of the line dramatically (even if it will improve knowledge of
-    the line's parameters), because the phase of the line ``resets'' after each
-    correlation time, and it can hurt if the data are significantly
-    non-stationary, since the model assumes stationarity.
-    \item The bandwidth should be chosen as narrow as possible, but wide enough
-    to ensure that the wings of the line have fallen well below the continuum noise
-    level.  This is for two reasons: first, the line will only be subtracted from the data within the chosen bandwidth, so you want to include all data where the line could be relevant; second, you need to ensure that the model has a good estimate of the continuum noise level.
-\end{itemize}
+We have implemented\footnote{\url{https://github.com/farr/LineCleaner}} a model for
+line cleaning as described above using Hamiltonian Monte Carlo \citep{Neal2011}
+as implemented in \texttt{numpyro} \cite{bingham2019pyro,phan2019composable} to
+sample over the line parameters and continuum noise level; the same model draws
+the line from the conditional distribution described above at each sample of the
+line parameters.  The model fitting and line subtraction for an arbitrary number
+of lines in narrow bandwidth ranges supplied by the user is encapsulated in a
+single function, \texttt{clean\_lines}, which returns time-domain residuals and
+optionally the output of the MCMC sampling for each line.
+
+Time domain data are tapered with an apodizing Tukey window before being
+discrete Fourier transformed for the fitting in the frequency domain.  Residuals
+are returned for all data \emph{outside} the tapered region.
+
+\subsection{Fitting Considerations}
+
+One consideration in this sort of analysis is the length of data to fit.  The
+user should ensure (after tapering) there are at least several correlation times
+$\tau = 1/\gamma$ of the line avaliable to fit; longer data segments will not
+substantially improve the subtraction of the line (even if they will improve
+knowledge of the line's parameters), because the phase of the line ``resets''
+after each correlation time.  Long data segments can hurt if the data are
+significantly non-stationary, since the model assumes stationarity; this can be
+particularly bad if the actual physical line parameters are changing throughout
+the longer data segment.  In practice, in LIGO data, the cleaner seems to work
+well with between several tens and several thousands of seconds of data,
+depending on the intrinsic width of the line.
+
+The bandwidth should be chosen as narrow as possible, but wide enough to ensure
+that the wings of the line have fallen well below the continuum noise level.
+This is for two reasons: first, the line will only be subtracted from the data
+within the chosen bandwidth, so you want to include all data where the line
+could be relevant; second, you need to ensure that the model has a good estimate
+of the continuum noise level.
+
+\subsection{Example}
+
+Here we show an example of cleaning lines at $60 \, \mathrm{Hz}$, $120 \,
+\mathrm{Hz}$, and $180 \, \mathrm{Hz}$ out of data from the Hanford LIGO
+observatory around the time of GW150914.  The are available from the
+Gravitational Wave Open Science Center (GWOSC)
+\cite{GWOSC,GWOSC2,GW150914-GWOSC}.  We use $4096 \, \mathrm{s}$ of data sampled
+at $4096 \, \mathrm{Hz}$.  The code is available in a Jupyter notebook\footnote{\url{https://github.com/farr/LineCleaner/blob/main/LineCleaner.ipynb}}.  The original and cleaned power spectral densities are shown in Figure \ref{fig:cleaned-psd}, and the raw and cleaned data in the vicinity of each line are shown in Figure \ref{fig:line-zoom}.  The line cleaner is able to remove the lines and leave a residual consistent with the continuum noise level.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{raw-and-cleaned-psd.pdf}
@@ -137,6 +168,8 @@ un-biasedly described by the spectral density $S_0$; see Appendix
     \caption{\label{fig:line-zoom} A zoom-in of the raw and cleaned data shown in Figure \ref{fig:cleaned-psd}.}
 \end{figure}
 
+\software{This work made use of the following software packages: \texttt{Jupyter } \citep{2007CSE.....9c..21P, kluyver2016jupyter}, \texttt{matplotlib } \citep{Hunter:2007}, \texttt{numpy } \citep{numpy}, \texttt{pandas } \citep{mckinney-proc-scipy-2010, pandas_13819579}, \texttt{python } \citep{python}, \texttt{scipy } \citep{2020SciPy-NMeth, scipy_14630489}, \texttt{ArviZ } \citep{arviz_2019, ArviZ_13854799}, \texttt{JAX } \citep{jax2018github}, \texttt{numpyro } \citep{phan2019composable, bingham2019pyro}, \texttt{tqdm } \citep{tqdm_14231923}, and \texttt{xarray } \citep{hoyer2017xarray, xarray_14777280}.  Software citation information aggregated using \texttt{\href{https://www.tomwagg.com/software-citation-station/}{The Software Citation Station}} \citep{software-citation-station-paper, software-citation-station-zenodo}.}
+
 \appendix
 
 \section{Avoiding Over-Subtraction}
@@ -147,9 +180,36 @@ fair draw from the posterior over the line parameters and line values, instead
 of using the maximum-likelihood values for either of these quantities.  This
 procedure avoids oversubtraction of the line, which is particularly important if
 downstream analyses are producing, for example, a noise estimate from the
+residuals.  As can be seen in Figure \ref{fig:line-zoom}, the residuals are
+consistent with the continuum noise level when a fair draw is subtracted; this
+would not be the case were the maximum-likelihood line used to produce the
 residuals.
 
-Before showing these results.
+To motivate this choice, consider the following very simple example which nevertheless retains crucial features of the line cleaning problem.  Let us suppose that we are trying to estimate a single, scalar quantity, $x$, from data $d$ that is a sum of $x$ and some Normally distributed noise, $n \sim N(0,\sigma)$,
+\begin{equation}
+    d = x + n.
+\end{equation}
+The maximum likelihood estimate for $x$, denoted $\hat{x}$, is 
+\begin{equation}
+    \hat{x} = d,
+\end{equation}
+which leaves zero residual when subtracted from the data:
+\begin{equation}
+    r = d - \hat{x} = 0.
+\end{equation}
+On the other hand, the posterior for $x$ given $d$ is normally distributed with
+mean $d$ and standard deviation $\sigma$,
+\begin{equation}
+    p(x \mid d) = N(x \mid d, \sigma).
+\end{equation}
+A fair draw from this posterior, subtracted from $d$, leaves a residual that is
+also Normally distributed with mean zero and standard deviation $\sigma$, which
+is exactly the correct distribution for residual noise to pass onward to
+downstream analyses.  The maximum-likelihood model \emph{over-subtracts}
+relative to the fair draw, producing residuals that are biased low compared to
+the actual noise process in the data.  For this reason, we choose to subtract a
+line estimated by a fair draw from our posterior to produce the residuals that
+we pass onward.
 
 \bibliographystyle{aasjournal}
 \bibliography{linecleaner}

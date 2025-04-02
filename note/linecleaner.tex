@@ -13,7 +13,12 @@
 \affiliation{Center for Computational Astrophysics, Flatiron Institute, New York, NY 10010, USA}
 
 \begin{abstract}
-    Blah
+    I present a tool, \texttt{linecleaner}, for fitting and regressing
+    narrow-band lines from timeseries data such as appear frequently in
+    gravitational wave detectors.  Residuals produced by this tool can be passed
+    onward to analyses that will benefit from removal of the (semi)coherent
+    lines, as opposed to their suppression by an enhanced spectral density
+    estimate around the line (a form of ``notch filter'').
 \end{abstract}
 
 \section{Theory}
@@ -24,8 +29,8 @@ signal, $n(t)$,
 \begin{equation}
     \ddot{x}(t) + 2\gamma\dot{x}(t) + \left( 2 \pi f_0 \right)^2 x(t) = n(t),
 \end{equation}
-with damping rate $\gamma$ and natural angular frequency $\omega_0$.  In the
-Fourier domain, the solution satisfies the algebraic equation 
+with damping rate $\gamma$ and natural frequency $\omega_0$.  In the Fourier
+domain, the solution satisfies the algebraic equation 
 \begin{equation}
     -\left( 2 \pi f \right)^2 X(f) + 4 \pi i\gamma f X(f) + \left( 2 \pi f_0 \right)^2 X(f) = N(f),
 \end{equation}
@@ -48,21 +53,22 @@ noise $n$.  This implies
     \left\langle X^*(f)X(f') \right\rangle & = & \frac{S_n(f)}{\left(\left( 2 \pi f_0 \right)^2 - \left( 2 \pi f \right)^2\right)^2 + 16 \pi^2 \gamma^2 f^2}\delta(f - f') \equiv S_x(f) \delta\left( f - f' \right).
 \end{eqnarray}
 If, furthermore, $n$ is Gaussian distributed, then $x$ will be as well,
-following an independent Gaussian distribution at each frequency $\omega$ with
-mean and variance indicated above.  Many narrow-band features (lines) in
+following an independent Gaussian distribution at each frequency $f$ with mean
+and variance indicated above.  Many narrow-band features (lines) in
 gravitational wave data can be adequately described by this model.  
 
-Assuming $\gamma / f_0 \ll 1$, over short timescales $\tau$ that are longer than
-the natural period associated to the solution, but short compared to the damping
-time, i.e.\ $f_0^{-1} \ll \tau \ll \gamma^{-1}$, the solution is sinusoidal with
-frequency $f_0$.  Over longer timescales the solution oscillates at the natural
-frequency, but with random \emph{phases}. For some lines in present-day
-gravitational wave detectors, the damping time is much longer than the analysis
-segments of typical signals; in such cases, it is possible to use data from
-before and after (and during) the analysis segment to \emph{infer} the phase of
-the line through the analysis segment and \emph{regress} it out of the data,
-improving the signal-to-noise ratio of the signal.  This is the basic idea
-behind the line cleaner described in this note.
+Assuming $\gamma / f_0 \ll 1$ (i.e.\ that the oscillator is severely
+under-damped), over short timescales $\tau$ that are longer than the natural
+period associated to the solution, but short compared to the damping time, i.e.\
+$f_0^{-1} \ll \tau \ll \gamma^{-1}$, the solution is sinusoidal with frequency
+$f_0$.  Over longer timescales the solution oscillates at the natural frequency,
+but with randomizing \emph{phase}. For some lines in present-day gravitational
+wave detectors, the damping time is much longer than the analysis segments of
+typical signals; in such cases, it is possible to use data from before and after
+(and during) the analysis segment to \emph{infer} the phase of the line through
+the analysis segment and \emph{regress} it out of the data, improving the
+signal-to-noise ratio of the signal.  This is the basic idea behind the line
+cleaner described in this note.
 
 Given a stretch of data in the (discrete) Fourier domain from a total
 observation time $T$, 
@@ -153,19 +159,33 @@ of the continuum noise level.
 
 Here we show an example of cleaning lines at $60 \, \mathrm{Hz}$, $120 \,
 \mathrm{Hz}$, and $180 \, \mathrm{Hz}$ out of data from the Hanford LIGO
-observatory around the time of GW150914.  The are available from the
+observatory around the time of GW150914.  The data are available from the
 Gravitational Wave Open Science Center (GWOSC)
 \cite{GWOSC,GWOSC2,GW150914-GWOSC}.  We use $4096 \, \mathrm{s}$ of data sampled
-at $4096 \, \mathrm{Hz}$.  The code is available in a Jupyter notebook\footnote{\url{https://github.com/farr/LineCleaner/blob/main/LineCleaner.ipynb}}.  The original and cleaned power spectral densities are shown in Figure \ref{fig:cleaned-psd}, and the raw and cleaned data in the vicinity of each line are shown in Figure \ref{fig:line-zoom}.  The line cleaner is able to remove the lines and leave a residual consistent with the continuum noise level.
+at $4096 \, \mathrm{Hz}$.  The code is available in a Jupyter
+notebook\footnote{\url{https://github.com/farr/LineCleaner/blob/main/LineCleaner.ipynb}}.
+The full original and cleaned power spectral densities are shown in Figure
+\ref{fig:cleaned-psd}, and in a narrow band around each cleaned line in Figure
+\ref{fig:line-zoom}.  The line cleaner is able to remove the lines and leave a
+residual consistent with the continuum noise level.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{raw-and-cleaned-psd.pdf}
-    \caption{\label{fig:cleaned-psd} An example of a cleaning of data from the Hanford LIGO observatory around the GW150914 event \cite{Abbott2016,Abbott2019,GWOSC,GWOSC2,GW150914-GWOSC}.  The Lorentzian lines at $60 \, \mathrm{Hz}$, $120 \, \mathrm{Hz}$, and $180 \, \mathrm{Hz}$ are clearly visible in the raw data, but are removed by the line cleaner; the cleaning used $4 \, \mathrm{Hz}$ bandwidth around each line.  Figure \ref{fig:line-zoom} shows the raw and cleaned data in the vicinity of each line.}
+    \caption{\label{fig:cleaned-psd} An example of a cleaning of data from the
+    Hanford LIGO observatory around the GW150914 event
+    \cite{Abbott2016,Abbott2019,GWOSC,GWOSC2,GW150914-GWOSC}.  The raw and
+    cleaned data power spectral density is shown from $10 \, \mathrm{Hz}$ to $1
+    \, \mathrm{kHz}$.  The lines at $60 \, \mathrm{Hz}$, $120 \, \mathrm{Hz}$,
+    and $180 \, \mathrm{Hz}$ are clearly visible in the raw data, but are
+    removed by the line cleaner; the cleaning used $4 \, \mathrm{Hz}$ bandwidth
+    around each line.  Figure \ref{fig:line-zoom} shows a zoomed view of the
+    PSDs in the vicinity of each line.}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{line-zoom-in.pdf}
-    \caption{\label{fig:line-zoom} A zoom-in of the raw and cleaned data shown in Figure \ref{fig:cleaned-psd}.}
+    \caption{\label{fig:line-zoom} A zoom-in of the power spectral densities of
+    the raw and cleaned data shown in Figure \ref{fig:cleaned-psd} around the lines cleaned at .}
 \end{figure}
 
 \software{This work made use of the following software packages: \texttt{Jupyter } \citep{2007CSE.....9c..21P, kluyver2016jupyter}, \texttt{matplotlib } \citep{Hunter:2007}, \texttt{numpy } \citep{numpy}, \texttt{pandas } \citep{mckinney-proc-scipy-2010, pandas_13819579}, \texttt{python } \citep{python}, \texttt{scipy } \citep{2020SciPy-NMeth, scipy_14630489}, \texttt{ArviZ } \citep{arviz_2019, ArviZ_13854799}, \texttt{JAX } \citep{jax2018github}, \texttt{numpyro } \citep{phan2019composable, bingham2019pyro}, \texttt{tqdm } \citep{tqdm_14231923}, and \texttt{xarray } \citep{hoyer2017xarray, xarray_14777280}.  Software citation information aggregated using \texttt{\href{https://www.tomwagg.com/software-citation-station/}{The Software Citation Station}} \citep{software-citation-station-paper, software-citation-station-zenodo}.}

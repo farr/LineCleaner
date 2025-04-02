@@ -13,7 +13,7 @@
 \affiliation{Center for Computational Astrophysics, Flatiron Institute, New York, NY 10010, USA}
 
 \begin{abstract}
-    I present a tool, \texttt{linecleaner}, for fitting and regressing
+    I present a tool, \texttt{line\_cleaner}, for fitting and regressing
     narrow-band lines from timeseries data such as appear frequently in
     gravitational wave detectors.  Residuals produced by this tool can be passed
     onward to analyses that will benefit from removal of the (semi)coherent
@@ -112,11 +112,14 @@ Subtracting a fair draw of the line from the data generates a residual sample,
 \begin{equation}
     R_k \equiv D_k - X_k,
 \end{equation}
-which can then be passed to downstream data analysis pipelines.  We choose to
-pass onward a fair sample of the residuals instead of, say, the maximum
-likelihood residuals so that the noise properties of the residuals are
-un-biasedly described by the spectral density $S_0$; see Appendix
-\ref{sec:oversubtract}.
+without any line content which can then be passed to downstream data analysis
+pipelines that may benefit from the reduced noise level.  This is in contrast to
+more standard analyses that include the line in an estimated PSD, effectively
+``notch filtering'' out the data dominated by the line
+\citep{Veitch2015,Littenberg2015}.  We choose to pass onward a fair sample of
+the residuals instead of, say, the maximum likelihood residuals so that the
+noise properties of the residuals are un-biasedly described by the spectral
+density $S_0$; see Appendix \ref{sec:oversubtract}.
 
 \section{Implementation}
 

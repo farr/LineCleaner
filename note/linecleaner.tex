@@ -208,7 +208,11 @@ consistent with the continuum noise level when a fair draw is subtracted; this
 would not be the case were the maximum-likelihood line used to produce the
 residuals.
 
-To motivate this choice, consider the following very simple example which nevertheless retains crucial features of the line cleaning problem.  Let us suppose that we are trying to estimate a single, scalar quantity, $x$, from data $d$ that is a sum of $x$ and some Normally distributed noise, $n \sim N(0,\sigma)$,
+To motivate this choice, consider the following very simple example which
+nevertheless retains crucial features of the line cleaning problem.  Let us
+suppose that we are trying to estimate a single, scalar quantity, $x$, from data
+$d$ that is a sum of $x$ and some normally distributed noise, $n \sim
+N(0,\sigma)$,
 \begin{equation}
     d = x + n.
 \end{equation}
@@ -226,7 +230,7 @@ mean $d$ and standard deviation $\sigma$,
     p(x \mid d) = N(x \mid d, \sigma).
 \end{equation}
 A fair draw from this posterior, subtracted from $d$, leaves a residual that is
-also Normally distributed with mean zero and standard deviation $\sigma$, which
+also normally distributed with mean zero and standard deviation $\sigma$, which
 is exactly the correct distribution for residual noise to pass onward to
 downstream analyses.  The maximum-likelihood model \emph{over-subtracts}
 relative to the fair draw, producing residuals that are biased low compared to
